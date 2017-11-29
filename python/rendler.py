@@ -57,6 +57,9 @@ class RenderingCrawler(Scheduler):
     def registered(self, driver, frameworkId, masterInfo):
         print "Registered with framework ID [%s]" % frameworkId.value
 
+    def reregistered(self, driver, masterInfo):
+        print("rerererrerererer")
+
     def makeTaskPrototype(self, offer):
         task = mesos_pb2.TaskInfo()
         tid = self.tasksCreated
@@ -128,39 +131,9 @@ class RenderingCrawler(Scheduler):
     def resourceOffers(self, driver, offers):
         self.printStatistics()
         
-        if not self.crawlQueue and not self.renderQueue and self.tasksRunning <= 0:
-            print "Nothing to do, RENDLER is shutting down"
-            hard_shutdown()
 
         for offer in offers:
-            print "Got resource offer [%s]" % offer.id.value
 
-            if self.shuttingDown:
-                print "Shutting down: declining offer on [%s]" % offer.hostname
-                driver.declineOffer(offer.id)
-                continue
-
-            maxTasks = self.maxTasksForOffer(offer)
-
-            print "maxTasksForOffer: [%d]" % maxTasks
-
-            tasks = []
-
-            for i in range(maxTasks / 2):
-                if self.crawlQueue:
-                    crawlTaskUrl = self.crawlQueue.popleft()
-                    task = self.makeCrawlTask(crawlTaskUrl, offer)
-                    tasks.append(task)
-                if self.renderQueue:
-                    renderTaskUrl = self.renderQueue.popleft()
-                    task = self.makeRenderTask(renderTaskUrl, offer)
-                    tasks.append(task)
-
-            if tasks:
-                print "Accepting offer on [%s]" % offer.hostname
-                driver.launchTasks(offer.id, tasks)
-            else:
-                print "Declining offer on [%s]" % offer.hostname
                 driver.declineOffer(offer.id)
 
     def statusUpdate(self, driver, update):
